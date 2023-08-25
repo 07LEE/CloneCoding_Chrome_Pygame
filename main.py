@@ -5,7 +5,6 @@ import random
 pygame.init()
 
 #Global Constants
-
 SCREEN_HEIGHT = 600
 SCREEN_WIDTH = 1600
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) # 화면 설정
@@ -121,17 +120,60 @@ class Cloud():
     def draw(self, SCREEN):
         SCREEN.blit(self.image, (self.x, self.y))
 
+class Obstacle:
+    def __init__(self, image, type): 
+        self.image = image
+        self.type = type
+        self.rect = self.image[self.type].get_rect()
+        self.rect.x = SCREEN_WIDTH
+
+    def update(self):
+        self.rect.x -= game_speed
+        if self.rect.x < -self.rect.width:
+            obstacles.pop() # 리스트의 마지막 요소를 반환하고 제거한다.
+    
+    def draw(self, SCREEN):
+        SCREEN.blit(self.image[self.type], self.rect)
+
+class SmallCactus(Obstacle): # Obstacle를 상속 받음
+    def __init__(self, image):
+        self.type = random.radint(0, 2)
+        super().__init__(image, self.type)
+        self.rect.y = 325
+
+class LargeCactus(Obstacle):
+    def __init__(self, image):
+        self.type = random.radint(0, 2)
+        super().__init__(image, self.type)
+        self.rect.y = 300
+
+class Bird(Obstacle):
+    def __init__(self, image):
+        self.type = 0
+        super().__init__(image, self.type)
+        self.rect.y = 250
+        self.index = 0 
+
+    def draw(self, SCREEN):
+        if self.index >= 9:
+            self.index = 0
+        SCREEN.blit(self.image[self.index//5], self.rect)
+        self.index += 1
+
+
 # 메인 함수 
 def main():
-    global game_speed, x_pos_bg, y_pos_bg, points
+    global game_speed, x_pos_bg, y_pos_bg, points, obstacles
     run = True
     clock = pygame.time.Clock()
+    cloud = Cloud()
     player = Dinosaur()
     game_speed = 14
     x_pos_bg = 0
     y_pos_bg = 380
     points = 0
     font = pygame.font.Font('freesansbold.ttf', 20)
+    obstacles = []
     
     def score():
         global points, game_speed
@@ -166,8 +208,28 @@ def main():
         player.draw(SCREEN)
         player.update(userInput)
 
+        if len(obstacles) == 0 :
+            if random.randint(0, 2) == 0:
+                obstacles.append(SmallCactus(SMALL_CACTUS))
+            elif random.randint(0, 2) == 1:
+                obstacles.append(LargeCactus(LARGE_CACTUS))
+
+        for obstacle in obstacles:
+            obstacle.draw(SCREEN)
+            obstacle.update()
+            if player.dino_rect.colliderect(obstacle.rect):
+                pygame.time.delay(2000)
+                death_count += 1
+                menu(death_count)
+
+        background()
+
+        cloud.draw(SCREEN)
+        cloud.update()
+
         score()
 
         clock.tick(30) # 프레임 수
+        pygame.display.update()
 
 main()
