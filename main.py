@@ -73,7 +73,7 @@ class Dinosaur():
             self.dino_duck = True
             self.dino_jump = False
             self.dino_rum = False
-        elif not (self.dino_jump or userInput[pygame.K_Down]):
+        elif not (self.dino_jump or userInput[pygame.K_DOWN]):
             self.dino_duck = False
             self.dino_jump = False
             self.dino_rum = True
@@ -102,7 +102,7 @@ class Dinosaur():
             self.jump_vel = self.JUMP_VEL
     
     def draw(self, SCREEN):
-        SCREEN.blit(self.image(self.dino_rect.x, self.dino_rect.y ))
+        SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
 
 class Cloud():
     def __init__(self): # 랜덤한 위치에 구름 생성
@@ -137,13 +137,13 @@ class Obstacle:
 
 class SmallCactus(Obstacle): # Obstacle를 상속 받음
     def __init__(self, image):
-        self.type = random.radint(0, 2)
+        self.type = random.randint(0, 2)
         super().__init__(image, self.type)
         self.rect.y = 325
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
-        self.type = random.radint(0, 2)
+        self.type = random.randint(0, 2)
         super().__init__(image, self.type)
         self.rect.y = 300
 
@@ -164,6 +164,7 @@ class Bird(Obstacle):
 # 메인 함수 
 def main():
     global game_speed, x_pos_bg, y_pos_bg, points, obstacles
+    death_count = 0
     run = True
     clock = pygame.time.Clock()
     cloud = Cloud()
@@ -201,9 +202,9 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             
-        SCREEN.fill(255,255,255) # 화면 색상 설정
+        SCREEN.fill((255, 255, 255))  # 흰색으로 화면 채우기
         
-        userInput = pygame.key.gert_pressed() #사용자가 키보드 누르는 행동
+        userInput = pygame.key.get_pressed() #사용자가 키보드 누르는 행동
         
         player.draw(SCREEN)
         player.update(userInput)
@@ -231,5 +232,37 @@ def main():
 
         clock.tick(30) # 프레임 수
         pygame.display.update()
+
+
+def menu(death_count):
+    global points
+    run = True
+    while run:
+        SCREEN.fill((255, 255, 255))  # 흰색으로 화면 채우기
+        font = pygame.font.Font('freesansbold.ttf', 30)
+
+        if death_count == 0:
+            text = font.render("Press any Key to Start", True, (0,0,0))
+        elif death_count > 0:
+            text = font.render("Press any Key to Start", True, (0,0,0))
+            score = font.render("Score : " + str(points), True, (0,0,0))
+            scoreRect = score.get_rect()
+            scoreRect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 50)
+            SCREEN.blit(score, scoreRect)
+
+        textRect = text.get_rect()
+        textRect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+        SCREEN.blit(text, textRect)
+        SCREEN.blit(RUNNING[0], (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 140))
+        
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                main()
+
+menu(death_count=0)
 
 main()
